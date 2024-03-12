@@ -1,0 +1,68 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id Int @id @default(autoincrement())
+  title String  
+  content String
+  published Boolean @default(false)
+  authorId Int
+  author User @relation(fields: [authorId], references: [id] )
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  PostCategory postCategory[]
+  @@map("posts")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique
+  email String 
+  role userRole @default(user)
+  Profile Profile? //One to One Relation 
+  post Post[] //One to Many Relation 
+  @@map("users")  
+}
+
+
+model Profile {
+   id Int @id @default(autoincrement())
+   bio String?
+   userId Int @unique
+   user User @relation(fields: [userId], references: [id])
+   //fields aa thakbe foren key and refarences aa thakbe primary key
+   @@map("profiles")
+}
+
+//* Many To Many Relation korte gele thridparty extra table lagbe 
+model Category{
+  id Int @id @default(autoincrement())
+  name String
+  postCategory postCategory[]
+  @@map("categorys")
+
+}
+
+//* Many To Many Relation korte gele thridparty extra table lagbe 
+model postCategory {
+   postId Int
+   post Post @relation(fields: [postId] , references: [id])
+   categoryId Int 
+   category Category @relation(fields: [categoryId] , references: [id])
+   
+   //composit key >> eita na dile error dibe 
+   @@id([postId, categoryId])
+   @@map("post_category")
+}   
+
+enum userRole {
+  user
+  admin
+}
